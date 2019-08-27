@@ -38,11 +38,10 @@
             </feature>
         </config-file>
 
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+        <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:usesCleartextTraffic="true"/>
         </edit-config>
 
- 
         <source-file src="src/android/de/rouvenkruse/cordova/plugins/cookieemperor/CookieEmperor.java" target-dir="src/de/rouvenkruse/cordova/plugins/cookieemperor" />
     </platform>          
 </plugin>
