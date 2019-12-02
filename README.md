@@ -47,7 +47,9 @@ window.cookieEmperor.setCookie(
         console.log('Error setting cookie: '+error);
     });
 ```
-The cookie value should be formatted just like a regular <code>document.cookie</code> value.
+The cookie object, passed as a parameter, should be formatted like above.
+If the expire property is not needed, it should be passed as an empty string.
+
 
 ### Clear all cookies
 ```javascript
