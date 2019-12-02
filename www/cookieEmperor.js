@@ -26,8 +26,8 @@ CookieEmperor.prototype.getCookie = function(url, cookieName, successCallback, e
  * @param successCallback
  * @param errorCallback
  */
-CookieEmperor.prototype.setCookie = function (url, cookieName, cookieValue, successCallback, errorCallback) {
-    cordova.exec(successCallback, errorCallback,  this.pluginName, 'setCookieValue', [url, cookieName, cookieValue]);
+CookieEmperor.prototype.setCookie = function (cookie, successCallback, errorCallback) {
+    cordova.exec(successCallback, errorCallback,  this.pluginName, 'setCookieValue', [value]);
 };
 
 /**
