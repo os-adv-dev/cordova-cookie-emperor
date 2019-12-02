@@ -32,7 +32,14 @@ window.cookieEmperor.getCookie('http://<some host>:<some port>', '<cookie name>'
 ```
 ### Set cookie value
 ```javascript
-window.cookieEmperor.setCookie('http://<some host>:<some port>', '<cookie name>', '<cookie value>',
+window.cookieEmperor.setCookie(
+        {       
+            name:'CookieName',
+            value:'hashValue',
+            path:'/',
+            domain:'http://example.com',
+            expire:'Fri, 15 Feb 2020 17:00:00 GMT'
+         },
     function() {
         console.log('A cookie has been set');
     },
@@ -40,7 +47,9 @@ window.cookieEmperor.setCookie('http://<some host>:<some port>', '<cookie name>'
         console.log('Error setting cookie: '+error);
     });
 ```
-The cookie value should be formatted just like a regular <code>document.cookie</code> value.
+The cookie object, passed as a parameter, should be formatted like above.
+If the expire property is not needed, it should be passed as an empty string.
+
 
 ### Clear all cookies
 ```javascript
