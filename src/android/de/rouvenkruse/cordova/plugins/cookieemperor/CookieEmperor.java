@@ -67,19 +67,24 @@ public class CookieEmperor extends CordovaPlugin {
                     .getThreadPool()
                     .execute(() -> {
 
-                        CookieSyncManager.createInstance(cordova.getContext());
-                        CookieManager cookieManager = CookieManager.getInstance();
-                        cookieManager.setAcceptCookie(true);
+                        try {
+                            CookieSyncManager.createInstance(cordova.getContext());
+                            CookieManager cookieManager = CookieManager.getInstance();
+                            cookieManager.setAcceptCookie(true);
 
-                        if (sessionCookie != null) {
-                            // delete old cookies
-                            cookieManager.removeSessionCookie();
+                            if (sessionCookie != null) {
+                                // delete old cookies
+                                cookieManager.removeSessionCookie();
+                            }
+
+                            cookieManager.setCookie(sessionCookie, value + getCookieValue(path, name, expire));
+                            CookieSyncManager.createInstance(this.cordova.getContext());
+
+                            PluginResult res = new PluginResult(PluginResult.Status.OK, "Successfully added cookie");
+                            callbackContext.sendPluginResult(res);
+                        } catch (Exception e) {
+                            callbackContext.error(e.getMessage());
                         }
-
-                        cookieManager.setCookie(sessionCookie, value + getCookieValue(path, name, expire));
-                        CookieSyncManager.createInstance(this.cordova.getContext());
-                        CookieSyncManager.getInstance().sync();
-
                     });
             return true;
         }
