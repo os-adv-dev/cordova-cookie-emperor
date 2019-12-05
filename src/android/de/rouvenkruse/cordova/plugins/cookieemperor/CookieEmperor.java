@@ -2,6 +2,7 @@ package de.rouvenkruse.cordova.plugins.cookieemperor;
 
 import android.os.Build;
 import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -12,9 +13,9 @@ import org.json.JSONObject;
 
 public class CookieEmperor extends CordovaPlugin {
 
-    public static final String ACTION_GET_COOKIE_VALUE = "getCookieValue";
-    public static final String ACTION_SET_COOKIE_VALUE = "setCookieValue";
-    public static final String ACTION_CLEAR_COOKIES = "clearCookies";
+    private static final String ACTION_GET_COOKIE_VALUE = "getCookieValue";
+    private static final String ACTION_SET_COOKIE_VALUE = "setCookieValue";
+    private static final String ACTION_CLEAR_COOKIES = "clearCookies";
 
     @Override
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -43,6 +44,48 @@ public class CookieEmperor extends CordovaPlugin {
     }
 
     /**
+     * Sets cookie value under given key
+     *
+     * @param args            the arguments
+     * @param callbackContext the callbackContext
+     * @return boolean the True if success and false if some an error
+     */
+    private boolean setCookie(JSONArray args, final CallbackContext callbackContext) throws JSONException {
+
+        JSONObject jsonObject = args.getJSONObject(0);
+        if (jsonObject == null) {
+            callbackContext.error("The object can not be null");
+            return false;
+        } else {
+            String name = jsonObject.getString("name");
+            String value = jsonObject.getString("value");
+            String path = jsonObject.getString("path");
+            String sessionCookie = jsonObject.getString("domain");
+            String expire = jsonObject.getString("expire");
+
+            cordova
+                    .getThreadPool()
+                    .execute(() -> {
+
+                        CookieSyncManager.createInstance(cordova.getContext());
+                        CookieManager cookieManager = CookieManager.getInstance();
+                        cookieManager.setAcceptCookie(true);
+
+                        if (sessionCookie != null) {
+                            // delete old cookies
+                            cookieManager.removeSessionCookie();
+                        }
+
+                        cookieManager.setCookie(sessionCookie, value + getCookieValue(path, name, expire));
+                        CookieSyncManager.createInstance(this.cordova.getContext());
+                        CookieSyncManager.getInstance().sync();
+
+                    });
+            return true;
+        }
+    }
+
+    /**
      * Returns cookie under given key
      *
      * @param args            the arguments
@@ -52,21 +95,17 @@ public class CookieEmperor extends CordovaPlugin {
     private boolean getCookie(JSONArray args, final CallbackContext callbackContext) {
         try {
             final String url = args.getString(0);
-            final String cookieName = args.getString(1);
 
             cordova
                     .getThreadPool()
                     .execute(() -> {
                         try {
-                            CookieManager cookieManager = CookieManager.getInstance();
-                            String[] cookies = cookieManager.getCookie(url).split("; ");
+                            String cookies = CookieManager.getInstance().getCookie(url);
                             String cookieValue = "";
 
-                            for (String cookie : cookies) {
-                                if (cookie.contains(cookieName + "=")) {
-                                    cookieValue = cookie.split("=")[1].trim();
-                                    break;
-                                }
+                            for (String cookie : cookies.split(";")) {
+                                cookieValue = cookie.split("=")[0].trim();
+                                break;
                             }
 
                             JSONObject json = null;
@@ -94,56 +133,9 @@ public class CookieEmperor extends CordovaPlugin {
         return false;
     }
 
-    /**
-     * Sets cookie value under given key
-     *
-     * @param args            the arguments
-     * @param callbackContext the callbackContext
-     * @return boolean
-     */
-    private boolean setCookie(JSONArray args, final CallbackContext callbackContext) {
-        try {
-
-            JSONObject jsonObject = args.getJSONObject(0);
-            if (jsonObject == null) callbackContext.error("The object can not be null");
-            else {
-
-                String name = jsonObject.getString("name");
-                String value = jsonObject.getString("value");
-                String path = jsonObject.getString("path");
-                String domain = jsonObject.getString("domain");
-                String expire = jsonObject.getString("expire");
-
-                cordova
-                        .getThreadPool()
-                        .execute(() -> {
-                            try {
-                                CookieManager cookieManager = CookieManager.getInstance();
-                                if (expire == null || expire.length() == 0) {
-                                    cookieManager.setCookie(domain, getCookieValue(name, value, path, null));
-                                } else {
-                                    cookieManager.setCookie(domain, getCookieValue(name, value, path, expire));
-                                }
-
-                                PluginResult res = new PluginResult(PluginResult.Status.OK, "Successfully added cookie");
-                                callbackContext.sendPluginResult(res);
-                            } catch (Exception e) {
-                                callbackContext.error(e.getMessage());
-                            }
-                        });
-            }
-            return true;
-        } catch (JSONException e) {
-            callbackContext.error("JSON parsing error");
-        }
-
-        return false;
-    }
-
-    private String getCookieValue(String name, String value, String path, String expires) {
+    private String getCookieValue(String name, String path, String expires) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("name=").append(name).append(";");
-        stringBuilder.append("value=").append(value).append(";");
+        stringBuilder.append(";name=").append(name).append(";");
         stringBuilder.append("path=").append(path).append(";");
 
         if (expires != null && expires.length() > 0)
