@@ -37,10 +37,9 @@
                 <param name="android-package" value="de.rouvenkruse.cordova.plugins.cookieemperor.CookieEmperor"/>
             </feature>
         </config-file>
-
-        <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/application">
-            <application android:usesCleartextTraffic="true"/>
-        </edit-config>
+        
+        <hook type="before_plugin_install" src="hooks/npmInstall.js"/>
+        <hook type="after_plugin_install" src="hooks/androidManifestChanger.js"/>
 
         <source-file src="src/android/de/rouvenkruse/cordova/plugins/cookieemperor/CookieEmperor.java" target-dir="src/de/rouvenkruse/cordova/plugins/cookieemperor" />
     </platform>          

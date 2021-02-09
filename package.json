@@ -22,5 +22,8 @@
     "cordova-ios"
   ],
   "author": "Rouven Kruse",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "q": "^1.5.1"
+  }
 }
